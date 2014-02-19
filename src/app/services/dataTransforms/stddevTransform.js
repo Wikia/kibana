@@ -14,7 +14,7 @@ define([
             sortedData = _.clone(results.hits),
             dataLength = sortedData.length,
             field,
-            dividend,
+            divisor,
             operand;
 
         upperBound = upperBound || 1;
@@ -50,8 +50,8 @@ define([
         }
 
         precision = Math.pow(10, precision);
-        dividend = upperBound - lowerBound;
-        operand = dividend !== 0 ? sum / dividend : sum;
+        divisor = upperBound - lowerBound;
+        operand = divisor !== 0 ? sum / divisor : sum;
         stddev = Math.round(Math.sqrt(operand) * precision) / precision;
 
         return [as, stddev];
