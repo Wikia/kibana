@@ -18,7 +18,7 @@ define([
 
         precision = Math.pow(10, precision);
         operand = denominator !== 0 ? numerator / denominator : numerator;
-        quotient = Math.round((operand) * precision) / precision;
+        quotient = Math.round(operand * precision) / precision;
 
         return [as, quotient];
       };
