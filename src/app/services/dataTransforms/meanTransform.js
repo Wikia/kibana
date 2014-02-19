@@ -39,7 +39,7 @@ define([
 
         precision = Math.pow(10, precision);
         divisor = upperBound - lowerBound;
-        operand = divisor !== 0 ? sum / dividend : sum;
+        operand = divisor !== 0 ? sum / divisor : sum;
         mean = Math.round(operand * precision) / precision;
 
         return [as, mean];
