@@ -4,18 +4,6 @@ function($, _, moment) {
 
   var kbn = {};
 
-  kbn._current_time = null;
-
-  kbn.current_time = function(reset) {
-    reset = reset || false;
-
-    if (kbn._current_time == null || reset) {
-      kbn._current_time = new Date();
-    }
-
-    return kbn._current_time;
-  };
-
   kbn.get_object_fields = function(obj) {
     var field_array = [];
     obj = kbn.flatten_json(obj._source);
@@ -265,7 +253,7 @@ function($, _, moment) {
       index,
       parseString;
     if (text.substring(0,3) === "now") {
-      time = kbn.current_time();
+      time = new Date();
       mathString = text.substring("now".length);
     } else {
       index = text.indexOf("||");
