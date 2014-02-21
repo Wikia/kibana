@@ -19,8 +19,6 @@ angular.module('elasticjs.service', [])
 
       // use existing ejs object if it exists
       ejs = window.ejs || {},
-      requestCache = {},
-      cacheTtl = 10000,
 
       /* results are returned as a promise */
       promiseThen = function (httpPromise, successcb, errorcb) {
@@ -31,17 +29,6 @@ angular.module('elasticjs.service', [])
           (errorcb || angular.noop)(response.data);
           return response.data;
         });
-      },
-      clearExpiredRequests = function() {
-        var newPending = {}, now = new Date().getTime();
-
-        for (var q in requestCache) {
-          if (requestCache[q].expires > now) {
-            newPending[q] = requestCache[q];
-          }
-        }
-
-        requestCache = newPending;
       };
 
     // check if we have a config object
@@ -68,25 +55,8 @@ angular.module('elasticjs.service', [])
       },
       post: function (path, data, successcb, errorcb) {
         path = config.server + path;
-        var reqConfig = {url: path, data: data, method: 'POST'},
-          promise;
-
-        clearExpiredRequests();
-        if (data in requestCache) {
-          promise = requestCache[data].promise;
-          promise.then(function(response) {
-            (successcb || angular.noop)(response);
-            return response;
-          });
-        } else {
-          promise = promiseThen($http(angular.extend(reqConfig, config)), successcb, errorcb);
-          requestCache[data] = {
-            promise: promise,
-            expires: new Date().getTime() + cacheTtl
-          };
-        }
-
-        return promise;
+        var reqConfig = {url: path, data: data, method: 'POST'};
+        return promiseThen($http(angular.extend(reqConfig, config)), successcb, errorcb);
       },
       get: function (path, data, successcb, errorcb) {
         path = config.server + path;
