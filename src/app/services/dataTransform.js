@@ -64,6 +64,8 @@ define([
             });
           }
         });
+
+        return results;
       };
 
       this.listTransforms = function(searchTypes) {

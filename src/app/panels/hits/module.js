@@ -136,10 +136,13 @@ define([
 
         // Make sure we're still on the same query/queries
         if($scope.query_id === query_id) {
-          resultProcessor(results, queries, _segment);
+          var isLastQuery = _segment == dashboard.indices.length - 1;
+
+          resultProcessor(results, queries, _segment, isLastQuery);
           setColor();
           $scope.$emit('render');
-          if(_segment < dashboard.indices.length-1) {
+
+          if(!isLastQuery) {
             $scope.get_data(_segment+1,query_id);
           }
 
@@ -261,14 +264,32 @@ define([
       });
     };
 
-    var getCalcProcessor = function(results, queries) {
-      dataTransform.transform(queries, results);
+    var getCalcProcessor = function(results, queries, segment, isLastQueryResult) {
+      _.each(queries, function(q, i) {
+        $scope.data[i] = $scope.data[i] || {
+          info: q,
+          id: q.id,
+          hits: 0,
+          results: {
+            hits: {
+              hits: []
+            }
+          }
+        };
 
-      if (_.has(results.hits, 'calc') && _.has(results.hits.calc, $scope.panel.calc.display)) {
-        $scope.hits = results.hits.calc[$scope.panel.calc.display].value;
-      } else {
-        $scope.hits = 0;
-      }
+        $scope.data[i].results.hits.hits.push(results.hits.hits);
+        $scope.data[i].hits += results.hits.total;
+
+        if (isLastQueryResult) {
+          $scope.data[i].results.hits.hits = _.flatten($scope.data[i].results.hits.hits, true);
+          var transformedResults = dataTransform.transform([q], $scope.data[i].results);
+          if (_.has(transformedResults.hits, 'calc') && _.has(transformedResults.hits.calc, $scope.panel.calc.display)) {
+            $scope.hits = transformedResults.hits.calc[$scope.panel.calc.display].value;
+          } else {
+            $scope.hits = 0;
+          }
+        }
+      });
     };
   });
 
