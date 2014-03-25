@@ -24,6 +24,11 @@ function (_) {
       settings[key] = typeof options[key] !== 'undefined' ? options[key]  : defaults[key];
     });
 
+    settings.elastic_resource = {
+      server: settings.elasticsearch,
+      withCredentials: settings.es_credentials
+    };
+
     return settings;
   };
 });

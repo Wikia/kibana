@@ -32,7 +32,7 @@ function (angular, _, config, kbn) {
     ];
 
     // For convenience
-    var ejs = ejsResource(config.elasticsearch);
+    var ejs = ejsResource(config.elastic_resource);
 
     // Holds all actual queries, including all resolved abstract queries
     var resolvedQueries = [];

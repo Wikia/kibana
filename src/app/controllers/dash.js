@@ -42,7 +42,7 @@ function (angular, config, _) {
       $scope.fields = fields;
       $scope.reset_row();
 
-      $scope.ejs = ejsResource(config.elasticsearch);
+      $scope.ejs = ejsResource(config.elastic_resource);
     };
 
     $scope.isPanel = function(obj) {
