@@ -1,31 +1,23 @@
-/*
+/** @scratch /panels/5
+ *
+ * include::panels/table.asciidoc[]
+ */
 
-  ## Table
-
-  ### Parameters
-  * size :: Number of events per page to show
-  * pages :: Number of pages to show. size * pages = number of cached events.
-             Bigger = more memory usage byh the browser
-  * offset :: Position from which to start in the array of hits
-  * sort :: An array with 2 elements. sort[0]: field, sort[1]: direction ('asc' or 'desc')
-  * style :: hash of css properties
-  * fields :: columns to show in table
-  * overflow :: 'height' or 'min-height' controls wether the row will expand (min-height) to
-                to fit the table, or if the table will scroll to fit the row (height)
-  * trimFactor :: If line is > this many characters, divided by the number of columns, trim it.
-  * sortable :: Allow sorting?
-  * spyable :: Show the 'eye' icon that reveals the last ES query for this panel
-
-*/
+/** @scratch /panels/table/0
+ *
+ * == table
+ * Status: *Stable*
+ *
+ * The table panel contains a sortable, pagable view of documents that. It can be arranged into
+ * defined columns and offers several interactions, such as performing adhoc terms aggregations.
+ *
+ */
 define([
   'angular',
   'app',
-  'underscore',
+  'lodash',
   'kbn',
   'moment',
-
-  // 'text!./pagination.html',
-  // 'text!partials/querySelect.html'
 ],
 function (angular, app, _, kbn, moment) {
   'use strict';
@@ -60,27 +52,90 @@ function (angular, app, _, kbn, moment) {
 
     // Set and populate defaults
     var _d = {
+      /** @scratch /panels/table/5
+       * === Parameters
+       *
+       * size:: The number of hits to show per page
+       */
+      size    : 100, // Per page
+      /** @scratch /panels/table/5
+       * pages:: The number of pages available
+       */
+      pages   : 5,   // Pages available
+      /** @scratch /panels/table/5
+       * offset:: The current page
+       */
+      offset  : 0,
+      /** @scratch /panels/table/5
+       * sort:: An array describing the sort order of the table. For example [`@timestamp',`desc']
+       */
+      sort    : ['_score','desc'],
+      /** @scratch /panels/table/5
+       * overflow:: The css overflow property. `min-height' (expand) or `auto' (scroll)
+       */
+      overflow: 'min-height',
+      /** @scratch /panels/table/5
+       * fields:: the fields used a columns of the table, in an array.
+       */
+      fields  : [],
+      /** @scratch /panels/table/5
+       * highlight:: The fields on which to highlight, in an array
+       */
+      highlight : [],
+      /** @scratch /panels/table/5
+       * sortable:: Set sortable to false to disable sorting
+       */
+      sortable: true,
+      /** @scratch /panels/table/5
+       * header:: Set to false to hide the table column names
+       */
+      header  : true,
+      /** @scratch /panels/table/5
+       * paging:: Set to false to hide the paging controls of the table
+       */
+      paging  : true,
+      /** @scratch /panels/table/5
+       * field_list:: Set to false to hide the list of fields. The user will be able to expand it,
+       * but it will be hidden by default
+       */
+      field_list: true,
+      /** @scratch /panels/table/5
+       * all_fields:: Set to true to show all fields in the mapping, not just the current fields in
+       * the table.
+       */
+      all_fields: false,
+      /** @scratch /panels/table/5
+       * trimFactor:: The trim factor is the length at which to truncate fields takinging into
+       * consideration the number of columns in the table. For example, a trimFactor of 100, with 5
+       * columns in the table, would trim each column at 20 character. The entirety of the field is
+       * still available in the expanded view of the event.
+       */
+      trimFactor: 300,
+      /** @scratch /panels/table/5
+       * localTime:: Set to true to adjust the timeField to the browser's local time
+       */
+      localTime: false,
+      /** @scratch /panels/table/5
+       * timeField:: If localTime is set to true, this field will be adjusted to the browsers local time
+       */
+      timeField: '@timestamp',
+      /** @scratch /panels/table/5
+       * spyable:: Set to false to disable the inspect icon
+       */
+      spyable : true,
+      /** @scratch /panels/table/5
+       *
+       * ==== Queries
+       * queries object:: This object describes the queries to use on this panel.
+       * queries.mode::: Of the queries available, which to use. Options: +all, pinned, unpinned, selected+
+       * queries.ids::: In +selected+ mode, which query ids are selected.
+       */
       queries     : {
         mode        : 'all',
         ids         : []
       },
-      size    : 100, // Per page
-      pages   : 5,   // Pages available
-      offset  : 0,
-      sort    : ['_score','desc'],
-      group   : "default",
       style   : {'font-size': '9pt'},
-      overflow: 'min-height',
-      fields  : [],
-      highlight : [],
-      sortable: true,
-      header  : true,
-      paging  : true,
-      field_list: true,
-      all_fields: false,
-      trimFactor: 300,
       normTimes : true,
-      spyable : true
     };
     _.defaults($scope.panel,_d);
 
@@ -132,6 +187,8 @@ function (angular, app, _, kbn, moment) {
         modalEl.modal('show');
       });
     };
+
+
 
     $scope.toggle_micropanel = function(field,groups) {
       var docs = _.map($scope.data,function(_d){return _d.kibana._source;});
@@ -214,7 +271,8 @@ function (angular, app, _, kbn, moment) {
         _segment,
         request,
         boolQuery,
-        results;
+        queries,
+        sort;
 
       $scope.panel.error =  false;
 
@@ -222,6 +280,12 @@ function (angular, app, _, kbn, moment) {
       if(dashboard.indices.length === 0) {
         return;
       }
+
+      sort = [$scope.ejs.Sort($scope.panel.sort[0]).order($scope.panel.sort[1])];
+      if($scope.panel.localTime) {
+        sort.push($scope.ejs.Sort($scope.panel.timeField).order($scope.panel.sort[1]));
+      }
+
 
       $scope.panelMeta.loading = true;
 
@@ -231,7 +295,8 @@ function (angular, app, _, kbn, moment) {
       request = $scope.ejs.Request().indices(dashboard.indices[_segment]);
 
       $scope.panel.queries.ids = querySrv.idsByMode($scope.panel.queries);
-      var queries = querySrv.getQueryObjs($scope.panel.queries.ids);
+
+      queries = querySrv.getQueryObjs($scope.panel.queries.ids);
 
       boolQuery = $scope.ejs.BoolQuery();
       _.each(queries,function(q) {
@@ -250,14 +315,12 @@ function (angular, app, _, kbn, moment) {
           .postTags('@end-highlight@')
         )
         .size($scope.panel.size*$scope.panel.pages)
-        .sort($scope.panel.sort[0],$scope.panel.sort[1]);
+        .sort(sort);
 
       $scope.populate_modal(request);
 
-      results = request.doSearch();
-
       // Populate scope when we have results
-      results.then(function(results) {
+      request.doSearch().then(function(results) {
         querySrv.transform(queries, results);
         $scope.panelMeta.loading = false;
 
@@ -303,7 +366,7 @@ function (angular, app, _, kbn, moment) {
             if(!_.isUndefined(v.sort)) {
               return v.sort[0];
             } else {
-              return 0;
+              return v._score;
             }
           });
 
@@ -349,6 +412,10 @@ function (angular, app, _, kbn, moment) {
       if($scope.refresh) {
         $scope.get_data();
       }
+      $scope.columns = [];
+      _.each($scope.panel.fields,function(field) {
+        $scope.columns[field] = true;
+      });
       $scope.refresh =  false;
     };
 
@@ -427,19 +494,9 @@ function (angular, app, _, kbn, moment) {
   });
 
   // WIP
-  module.filter('tableFieldFormat', function(fields){
-    return function(text,field,event,scope) {
-      var type;
-      if(
-        !_.isUndefined(fields.mapping[event._index]) &&
-        !_.isUndefined(fields.mapping[event._index][event._type])
-      ) {
-        type = fields.mapping[event._index][event._type][field]['type'];
-        if(type === 'date' && scope.panel.normTimes) {
-          return moment(text).format('YYYY-MM-DD HH:mm:ss');
-        }
-      }
-      return text;
+  module.filter('tableLocalTime', function(){
+    return function(text,event) {
+      return moment(event.sort[1]).format("YYYY-MM-DDTHH:mm:ss.SSSZ");
     };
   });
 

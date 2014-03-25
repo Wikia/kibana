@@ -128,6 +128,8 @@
           },
           "overflow": "min-height",
           "fields": [],
+          "localTime": true,
+          "timeField": "@timestamp",
           "highlight": [],
           "sortable": true,
           "header": true,
@@ -155,7 +157,7 @@
     "pattern": "[logstash-]YYYY.MM.DD",
     "default": "NO_TIME_FILTER_OR_INDEX_PATTERN_NOT_MATCHED"
   },
-  "style": "dark",
+  "style": "{{ARGS.style || 'dark'}}",
   "panel_hints": true,
   "pulldowns": [
     {

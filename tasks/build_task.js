@@ -5,7 +5,7 @@ module.exports = function(grunt) {
     'jshint:source',
     'clean:on_start',
     'less:dist',
-    'copy:everything_but_less_to_temp',
+    'copy:almost_everything_to_temp',
     'htmlmin:build',
     'cssmin:build',
     'ngmin:build',
@@ -19,20 +19,22 @@ module.exports = function(grunt) {
   grunt.registerTask('build:write_revision', function() {
     grunt.event.once('git-describe', function (desc) {
       grunt.config('string-replace.config', {
-        src: '<%= destDir %>/app/components/require.config.js',
-        dest: '<%= destDir %>/app/components/require.config.js',
+        files: {
+          '<%= destDir %>/app/components/require.config.js': '<%= destDir %>/app/components/require.config.js',
+          '<%= destDir %>/app/app.js': '<%= destDir %>/app/app.js'
+        },
+
         options: {
           replacements: [
             {
-              pattern: /(?:^|\/\/)(.*)@REV@/,
-              replacement: '$1'+desc.object
+              pattern: /@REV@/g,
+              replacement: grunt.config.data.pkg.version +"-"+ desc.object
             }
           ]
         }
       });
-
       grunt.task.run('string-replace:config');
     });
     grunt.task.run('git-describe');
   });
-}
+};

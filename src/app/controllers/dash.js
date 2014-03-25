@@ -1,7 +1,7 @@
 define([
   'angular',
   'config',
-  'underscore',
+  'lodash',
   'services/all'
 ],
 function (angular, config, _) {
@@ -10,9 +10,9 @@ function (angular, config, _) {
   var module = angular.module('kibana.controllers');
 
   module.controller('DashCtrl', function(
-    $scope, $route, ejsResource, fields, dashboard, alertSrv, panelMove, esVersion) {
+    $scope, $route, ejsResource, fields, dashboard, alertSrv, panelMove, esVersion, kbnVersion) {
 
-    $scope.requiredElasticSearchVersion = ">=0.20.5";
+    $scope.Math = Math;
 
     $scope.editor = {
       index: 0
@@ -28,7 +28,8 @@ function (angular, config, _) {
 
     $scope.init = function() {
       $scope.config = config;
-      // Make stuff, including underscore.js available to views
+      $scope.kbnVersion = kbnVersion;
+      // Make stuff, including lodash available to views
       $scope._ = _;
       $scope.dashboard = dashboard;
       $scope.dashAlerts = alertSrv;
@@ -83,6 +84,12 @@ function (angular, config, _) {
       } else {
         return false;
       }
+    };
+
+    $scope.pulldownTabStyle = function(i) {
+      var classes = ['bgPrimary','bgSuccess','bgWarning','bgDanger','bgInverse','bgInfo'];
+      i = i%classes.length;
+      return classes[i];
     };
 
     $scope.setEditorTabs = function(panelMeta) {

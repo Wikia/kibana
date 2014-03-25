@@ -9,5 +9,6 @@ define([
   './tip',
   './searchInput',
   './confirmClick',
-  './esVersion'
+  './esVersion',
+  './configModal'
 ], function () {});

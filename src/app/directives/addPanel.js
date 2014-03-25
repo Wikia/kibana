@@ -1,7 +1,7 @@
 define([
   'angular',
   'app',
-  'underscore'
+  'lodash'
 ],
 function (angular, app, _) {
   'use strict';
@@ -12,6 +12,11 @@ function (angular, app, _) {
       return {
         restrict: 'A',
         link: function($scope, elem) {
+
+          $scope.$on("$destroy",function() {
+            elem.remove();
+          });
+
           $scope.$watch('panel.type', function() {
             var _type = $scope.panel.type;
             $scope.reset_panel(_type);
