@@ -24,10 +24,9 @@ function (Settings) {
      * kibana installed on. You probably want to set it to the FQDN of your
      * elasticsearch host
      */
-    elasticsearch: {
-      server: "https://elastic-kibana.wikia-inc.com",
-      withCredentials: true
-    },
+    elasticsearch: "https://elastic-kibana.wikia-inc.com",
+
+    es_credentials: true,
 
     /** @scratch /configuration/config.js/5
      *
