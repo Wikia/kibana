@@ -1,6 +1,6 @@
 define([
   'angular',
-  'underscore'
+  'lodash'
 ],
   function(ng, _) {
     ng.module('kibana.services').service('countTransform', function(dataTransform) {

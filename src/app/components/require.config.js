@@ -49,10 +49,6 @@ require.config({
     elasticjs:                '../vendor/elasticjs/elastic-angular-client',
   },
   shim: {
-    underscore: {
-      exports: '_'
-    },
-
     angular: {
       deps: ['jquery','config'],
       exports: 'angular'
